@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Prata&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./vendor/flatpickr.min.css">
   <link rel="stylesheet" href="./styles.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"GuestHouse","name":"Отдых в квадрате","description":"Двухэтажный гостевой дом с баней и зоной барбекю","telephone":"+375295485248","address":{"@type":"PostalAddress","addressLocality":"Прокшеничи","streetAddress":"ул. Центральная, 5А","addressCountry":"BY"},"occupancy":{"@type":"QuantitativeValue","maxValue":8},"petsAllowed":true,"priceRange":"от 230 BYN за сутки"}</script>
 </head>
@@ -36,7 +37,7 @@
     <nav class="desktop-nav" aria-label="Основная навигация">
       <a href="#house">Дом</a><a href="#territory">Территория</a><a href="#gallery">Галерея</a><a href="#price">Цены</a><a href="#contacts">Контакты</a>
     </nav>
-    <a class="header-book" href="#booking">Забронировать <svg><use href="#i-arrow"/></svg></a>
+    <a class="button button-accent header-book" href="#booking">Забронировать <svg><use href="#i-arrow"/></svg></a>
     <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Открыть меню"><span></span><span></span></button>
     <nav class="mobile-nav" id="mobileNav" aria-label="Мобильная навигация" hidden>
       <a href="#house">Дом</a><a href="#territory">Территория</a><a href="#gallery">Галерея</a><a href="#price">Цены</a><a href="#contacts">Контакты</a>
@@ -56,7 +57,11 @@
         <p class="hero-location"><svg><use href="#i-pin"/></svg> Прокшеничи · 12 км от Могилёва</p>
         <h1>Место, где<br>время не спешит</h1>
         <p class="hero-lead">Уединённый дом с баней, купелью<br class="desktop-only"> и бескрайним видом на природу.</p>
-        <a class="hero-text-link" href="#booking">Познакомиться с домом <span>↓</span></a>
+        <div class="hero-actions">
+          <a class="button button-accent hero-book" href="#booking">Проверить свободные даты <svg><use href="#i-arrow"/></svg></a>
+          <a class="hero-text-link" href="#house">Смотреть дом <span>↓</span></a>
+        </div>
+        <p class="hero-price"><span>от</span> <strong>230 BYN</strong> <span>/ сутки</span></p>
       </div>
       <div class="slider-controls container">
         <div class="slider-status"><span id="slideNumber">01</span><div class="slider-bars" id="sliderBars"><button class="active" data-slide="0" aria-label="Фото 1"></button><button data-slide="1" aria-label="Фото 2"></button><button data-slide="2" aria-label="Фото 3"></button></div><span>03</span></div>
@@ -77,12 +82,13 @@
             <label><span class="visually-hidden">Количество детей</span><select id="children" name="children" aria-label="Количество детей"><option value="0" selected>0 детей</option><option value="1">1 ребёнок</option><option value="2">2 ребёнка</option><option value="3">3 ребёнка</option><option value="4">4 ребёнка</option><option value="5">5 детей</option><option value="6">6 детей</option><option value="7">7 детей</option></select></label>
           </div>
         </div>
-        <button class="button button-accent" type="submit">Отправить запрос <svg><use href="#i-arrow"/></svg></button>
+        <button class="button button-accent" type="submit">Проверить даты и стоимость <svg><use href="#i-arrow"/></svg></button>
         <div class="children-ages" id="childrenAges" hidden>
           <span class="children-ages-title">Возраст каждого ребёнка</span>
           <div class="children-ages-fields" id="childrenAgesFields"></div>
           <p class="guest-error" id="guestError" role="alert"></p>
         </div>
+        <p class="date-error" id="dateError" role="alert"></p>
         <p class="form-note">Всего до 8 гостей. Без предоплаты — сначала подтвердим даты и стоимость.</p>
       </form>
     </section>
@@ -148,14 +154,14 @@
     <section class="price section" id="price">
       <div class="container price-grid">
         <div class="price-heading"><p class="eyebrow light">Простые условия</p><h2>Отдых складывается<br>из правильных деталей</h2><p>Точную стоимость на ваши даты подтвердит владелец.</p></div>
-        <div class="price-main"><span>Аренда дома</span><div><small>от</small><strong>230</strong><span>BYN<br>/ сутки</span></div><p>В будние дни. В выходные и праздники стоимость договорная.</p></div>
+        <div class="price-main"><span>Аренда дома</span><div><small>от</small><strong>230</strong><span>BYN<br>/ сутки</span></div><span class="discount-badge">−15% от 2 суток</span><p>В будние дни. В выходные и праздники стоимость договорная.</p></div>
         <div class="price-extra"><div><span>Баня</span><strong>150 BYN</strong></div><div><span>Купель</span><strong>150 BYN</strong></div><div><span>Баня + купель</span><strong>250 BYN</strong></div><p class="price-included">Без ограничения по времени. Халаты и аксессуары для бани и купели включены.</p></div>
-        <div class="discounts"><p><strong>Выгоднее остаться дольше</strong>Скидка 15% при бронировании от 2 дней. Именинникам — отдельная скидка.</p><a class="button button-light" href="#booking">Выбрать даты <svg><use href="#i-arrow"/></svg></a></div>
+        <div class="discounts"><p><strong>Выгоднее остаться дольше</strong>Скидка 15% при бронировании от 2 дней. Именинникам — отдельная скидка.</p><a class="button button-accent" href="#booking">Выбрать даты <svg><use href="#i-arrow"/></svg></a></div>
       </div>
     </section>
 
     <section class="reviews section container">
-      <div class="reviews-top"><p class="eyebrow">Слова гостей</p><div><strong>4,3</strong><span>оценка на Яндекс Картах</span></div></div>
+      <div class="reviews-top"><p class="eyebrow">Слова гостей</p><a class="rating-link" href="https://yandex.com/maps/org/rest_squared/139732959574/" target="_blank" rel="noopener" aria-label="Оценка 4,3. Читать все отзывы на Яндекс Картах"><strong>4,3</strong><span>Читать все отзывы<br>на Яндекс Картах ↗</span></a></div>
       <div class="review-grid">
         <blockquote><span class="quote">“</span><p>Уютное и атмосферное место. Видно, что всё сделано с любовью и вниманием. Продумано до мелочей, очень чисто.</p><footer><strong>Мария</strong><span>гостья дома</span></footer></blockquote>
         <blockquote><span class="quote">“</span><p>Замечательное место для отдыха: красиво, душевно, продумано до мелочей. Приятные хозяева. Нам всё очень понравилось!</p><footer><strong>Анна</strong><span>гостья дома</span></footer></blockquote>
@@ -198,6 +204,8 @@
   </dialog>
 
   <dialog class="lightbox" id="lightbox" aria-label="Просмотр фотографии"><button class="lightbox-close" type="button" aria-label="Закрыть галерею"><svg><use href="#i-close"/></svg></button><button class="lightbox-prev" type="button" aria-label="Предыдущее фото"><svg><use href="#i-chevron"/></svg></button><img id="lightboxImage" src="./assets/house-summer.webp" alt=""><button class="lightbox-next" type="button" aria-label="Следующее фото"><svg><use href="#i-chevron"/></svg></button><p id="lightboxCaption"></p></dialog>
-  <script type="module" src="./src/main.js?v=3"></script>
+  <script src="./vendor/flatpickr.min.js"></script>
+  <script src="./vendor/flatpickr-ru.js"></script>
+  <script type="module" src="./src/main.js?v=5"></script>
 </body>
 </html>

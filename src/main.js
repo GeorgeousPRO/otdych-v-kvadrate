@@ -29,7 +29,7 @@ function smoothScrollTo(target, hash) {
   activeScrollAnimation = requestAnimationFrame(frame);
 }
 
-$$('a[href="#top"], a.hero-text-link[href="#booking"]').forEach(link => {
+$$('a[href="#top"], .hero-actions a[href^="#"]').forEach(link => {
   link.addEventListener('click', event => {
     const target = $(link.hash);
     if (!target) return;
@@ -73,6 +73,18 @@ document.addEventListener('keydown', event => {
   }
 });
 window.addEventListener('resize', () => { if (window.innerWidth > 1100 && !mobileNav.hidden) closeMenu(); });
+
+// Keep the mobile floating CTA out of the hero, where the primary CTA is already visible
+const mobileBook = $('.mobile-book');
+const hero = $('.hero');
+if ('IntersectionObserver' in window) {
+  const heroObserver = new IntersectionObserver(([entry]) => {
+    mobileBook.classList.toggle('is-visible', !entry.isIntersecting);
+  }, { threshold: 0.08 });
+  heroObserver.observe(hero);
+} else {
+  mobileBook.classList.add('is-visible');
+}
 
 // Full-screen photographic slider
 const slides = $$('.hero-slide');
@@ -134,6 +146,7 @@ const children = $('#children');
 const childrenAges = $('#childrenAges');
 const childrenAgesFields = $('#childrenAgesFields');
 const guestError = $('#guestError');
+const dateError = $('#dateError');
 childrenAgesFields.setAttribute('aria-live', 'polite');
 children.setAttribute('aria-describedby', 'guestError');
 
@@ -187,23 +200,82 @@ const tomorrow = new Date(today);
 tomorrow.setDate(today.getDate() + 1);
 checkin.min = toLocalISO(today);
 checkout.min = toLocalISO(tomorrow);
+
+// A consistent calendar on iOS and desktop, with unavailable dates disabled before selection
+function prepareDatePicker(instance, label) {
+  instance.input.required = false;
+  instance.altInput.required = true;
+  instance.altInput.setAttribute('aria-label', label);
+  instance.altInput.setAttribute('inputmode', 'none');
+  instance.altInput.setAttribute('aria-describedby', 'dateError');
+  instance.altInput.placeholder = 'дд.мм.гггг';
+}
+const datePickerDefaults = {
+  altInput: true,
+  altInputClass: 'date-alt-input',
+  altFormat: 'd.m.Y',
+  dateFormat: 'Y-m-d',
+  locale: 'ru',
+  disableMobile: true,
+  allowInput: false,
+  monthSelectorType: 'dropdown'
+};
+const checkinPicker = flatpickr(checkin, {
+  ...datePickerDefaults,
+  minDate: today,
+  onReady: (dates, value, instance) => prepareDatePicker(instance, 'Дата заезда')
+});
+const checkoutPicker = flatpickr(checkout, {
+  ...datePickerDefaults,
+  minDate: tomorrow,
+  onReady: (dates, value, instance) => prepareDatePicker(instance, 'Дата отъезда')
+});
+
+function clearDateError() {
+  dateError.textContent = '';
+  checkinPicker.altInput.removeAttribute('aria-invalid');
+  checkoutPicker.altInput.removeAttribute('aria-invalid');
+}
 checkin.addEventListener('change', () => {
+  clearDateError();
   checkin.setCustomValidity('');
   checkout.setCustomValidity('');
+  checkinPicker.altInput.setCustomValidity('');
+  checkoutPicker.altInput.setCustomValidity('');
   if (!checkin.value) return;
   const nextDay = new Date(`${checkin.value}T12:00:00`);
   nextDay.setDate(nextDay.getDate() + 1);
   checkout.min = toLocalISO(nextDay);
-  if (checkout.value && checkout.value <= checkin.value) checkout.value = checkout.min;
+  checkoutPicker.set('minDate', nextDay);
+  if (checkout.value && checkout.value <= checkin.value) checkoutPicker.setDate(nextDay, true);
 });
-checkout.addEventListener('change', () => checkout.setCustomValidity(''));
+checkout.addEventListener('change', () => {
+  clearDateError();
+  checkout.setCustomValidity('');
+  checkoutPicker.altInput.setCustomValidity('');
+});
+
+function validateDatePickers() {
+  clearDateError();
+  const fields = [
+    { input: checkin, altInput: checkinPicker.altInput, message: 'Выберите дату заезда.' },
+    { input: checkout, altInput: checkoutPicker.altInput, message: 'Выберите дату отъезда.' }
+  ];
+  for (const field of fields) {
+    if (field.input.value) continue;
+    dateError.textContent = field.message;
+    field.altInput.setAttribute('aria-invalid', 'true');
+    return false;
+  }
+  return true;
+}
 
 // Russian validation messages for every booking field, including native browser rules
 function getRussianValidationMessage(field) {
   if (field.validity.customError) return field.validationMessage;
   if (field.validity.valueMissing) {
-    if (field === checkin) return 'Выберите дату заезда.';
-    if (field === checkout) return 'Выберите дату отъезда.';
+    if (field === checkin || field === checkinPicker.altInput) return 'Выберите дату заезда.';
+    if (field === checkout || field === checkoutPicker.altInput) return 'Выберите дату отъезда.';
     if (field.matches('.child-age select')) return `Укажите возраст: ${field.previousElementSibling.textContent.toLowerCase()}.`;
     return 'Заполните это поле.';
   }
@@ -230,16 +302,17 @@ bookingForm.addEventListener('change', event => {
 
 bookingForm.addEventListener('submit', event => {
   event.preventDefault();
+  if (!validateDatePickers()) return;
+  if (!bookingForm.reportValidity()) return;
   if (checkout.value <= checkin.value) {
-    checkout.setCustomValidity('Дата отъезда должна быть позже даты заезда.');
-    checkout.reportValidity();
+    dateError.textContent = 'Дата отъезда должна быть позже даты заезда.';
+    checkoutPicker.altInput.setAttribute('aria-invalid', 'true');
     return;
   }
   if (!validateGuestTotal()) {
     children.reportValidity();
     return;
   }
-  if (!bookingForm.reportValidity()) return;
   const formatDate = value => new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
   const adultsCount = Number(adults.value);
   const childrenCount = Number(children.value);
