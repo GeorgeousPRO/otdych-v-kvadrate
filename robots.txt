@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://georgeouspro.github.io/otdych-v-kvadrate/sitemap.xml
